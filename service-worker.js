@@ -1,4 +1,4 @@
-const CACHE_NAME = "emotion-code-session-support-v1";
+const CACHE_NAME = "emotion-code-session-support-v2";
 const APP_ASSETS = [
   "./",
   "./index.html",

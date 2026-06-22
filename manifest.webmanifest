@@ -1,0 +1,19 @@
+{
+  "name": "エモーションコード セッションサポート",
+  "short_name": "感情リリース",
+  "description": "エモーションコードのセッション中にリリースした感情と追加情報をまとめるサポートアプリです。",
+  "lang": "ja",
+  "start_url": "./outputs/emotion-code-session-support.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f7fb",
+  "theme_color": "#18bf88",
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

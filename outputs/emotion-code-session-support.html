@@ -544,8 +544,6 @@
         note: ""
       });
       render();
-      const latest = document.querySelector(`[data-release-id="${releases[releases.length - 1].id}"] textarea`);
-      if (latest) latest.focus();
       showToast(`${emotion}を追加しました`);
     }
 

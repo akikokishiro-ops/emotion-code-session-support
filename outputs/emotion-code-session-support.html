@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>エモーションコード セッションサポート</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #1f2430;
+      --muted: #667085;
+      --line: #3f37a8;
+      --soft-line: #d9d7fb;
+      --paper: #fbfbfe;
+      --panel: #ffffff;
+      --accent: #18bf88;
+      --accent-dark: #0f8f68;
+      --warn: #b54708;
+      --shadow: 0 14px 35px rgba(26, 29, 59, 0.12);
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "YuGothic", "Noto Sans JP", Meiryo, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: linear-gradient(180deg, #f6f7fb 0%, #eef7f2 100%);
+      min-height: 100vh;
+    }
+
+    button,
+    textarea {
+      font: inherit;
+    }
+
+    .app {
+      width: min(1480px, 100%);
+      margin: 0 auto;
+      padding: 18px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(22px, 3vw, 34px);
+      line-height: 1.2;
+      letter-spacing: 0;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .button {
+      border: 1px solid #cfd3dc;
+      border-radius: 8px;
+      background: var(--panel);
+      color: var(--ink);
+      min-height: 42px;
+      padding: 8px 13px;
+      cursor: pointer;
+      box-shadow: 0 1px 0 rgba(0, 0, 0, 0.03);
+    }
+
+    .button.primary {
+      border-color: var(--accent-dark);
+      background: var(--accent);
+      color: white;
+      font-weight: 700;
+    }
+
+    .button.danger {
+      color: var(--warn);
+    }
+
+    .status {
+      min-height: 24px;
+      color: var(--accent-dark);
+      font-weight: 700;
+      text-align: right;
+      font-size: 14px;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(620px, 1.45fr) minmax(360px, 0.85fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .chart-wrap,
+    .session {
+      background: rgba(255, 255, 255, 0.82);
+      border: 1px solid #e7e9ef;
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .chart-head {
+      display: grid;
+      grid-template-columns: 195px 1fr 1fr;
+      border-bottom: 2px solid var(--line);
+      background: #f8f8ff;
+    }
+
+    .chart-head div {
+      min-height: 38px;
+      display: grid;
+      place-items: center;
+      color: var(--accent);
+      font-size: 24px;
+      font-weight: 800;
+      border-left: 2px solid var(--line);
+    }
+
+    .chart-head div:first-child {
+      border-left: none;
+    }
+
+    .chart {
+      display: grid;
+      grid-template-columns: 195px 1fr 1fr;
+      background: var(--paper);
+    }
+
+    .organ,
+    .cell {
+      min-height: 170px;
+      border-bottom: 2px solid var(--line);
+      border-left: 2px solid var(--line);
+    }
+
+    .organ {
+      border-left: none;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 14px 8px;
+      background: #f3f4f8;
+    }
+
+    .organ-number {
+      display: block;
+      color: var(--accent);
+      font-size: 30px;
+      font-weight: 800;
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+
+    .organ-name {
+      font-size: clamp(17px, 1.6vw, 25px);
+      line-height: 1.35;
+      word-break: keep-all;
+    }
+
+    .cell {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 7px;
+      align-content: center;
+      padding: 16px 18px;
+    }
+
+    .emotion {
+      appearance: none;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      background: transparent;
+      color: #111827;
+      min-height: 32px;
+      padding: 4px 8px;
+      font-size: clamp(15px, 1.35vw, 22px);
+      line-height: 1.28;
+      cursor: pointer;
+      transition: background 0.14s ease, border-color 0.14s ease, transform 0.14s ease;
+    }
+
+    .emotion:hover,
+    .emotion:focus-visible {
+      outline: none;
+      background: #e8fbf3;
+      border-color: #98e7cc;
+    }
+
+    .emotion:active {
+      transform: scale(0.98);
+    }
+
+    .session {
+      position: sticky;
+      top: 14px;
+      max-height: calc(100vh - 28px);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .session-header {
+      padding: 16px;
+      border-bottom: 1px solid #e4e7ec;
+      background: #ffffff;
+    }
+
+    .session-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.3;
+      letter-spacing: 0;
+    }
+
+    .count {
+      color: var(--muted);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .session-body {
+      overflow: auto;
+      padding: 12px;
+    }
+
+    .empty {
+      padding: 34px 18px;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.7;
+    }
+
+    .release {
+      border: 1px solid #dde1ea;
+      border-radius: 8px;
+      background: white;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+
+    .release-top {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 10px;
+      align-items: start;
+      margin-bottom: 10px;
+    }
+
+    .index {
+      width: 32px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: #ecfdf5;
+      color: var(--accent-dark);
+      font-weight: 800;
+    }
+
+    .release-name {
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .icon-button {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #e1e5ef;
+      border-radius: 8px;
+      background: #fff;
+      color: #667085;
+      cursor: pointer;
+      font-size: 19px;
+      line-height: 1;
+    }
+
+    .notes {
+      width: 100%;
+      min-height: 76px;
+      resize: vertical;
+      border: 1px solid #d0d5dd;
+      border-radius: 8px;
+      padding: 10px;
+      line-height: 1.55;
+      background: #fcfcfd;
+    }
+
+    .notes:focus {
+      outline: 2px solid #a6f4d0;
+      border-color: var(--accent);
+    }
+
+    .preview {
+      border-top: 1px solid #e4e7ec;
+      padding: 12px;
+      background: #f9fafb;
+    }
+
+    .preview textarea {
+      width: 100%;
+      min-height: 150px;
+      max-height: 32vh;
+      resize: vertical;
+      border: 1px solid #d0d5dd;
+      border-radius: 8px;
+      padding: 10px;
+      line-height: 1.55;
+      background: white;
+      color: #344054;
+    }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      background: #101828;
+      color: white;
+      border-radius: 8px;
+      padding: 12px 14px;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(8px);
+      pointer-events: none;
+      transition: opacity 0.18s ease, transform 0.18s ease;
+      z-index: 10;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 1050px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .session {
+        position: static;
+        max-height: none;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .app {
+        padding: 10px;
+      }
+
+      header {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .toolbar {
+        justify-content: stretch;
+      }
+
+      .button {
+        flex: 1 1 auto;
+      }
+
+      .chart-head,
+      .chart {
+        grid-template-columns: 96px 1fr 1fr;
+      }
+
+      .chart-head div {
+        min-height: 32px;
+        font-size: 19px;
+      }
+
+      .organ,
+      .cell {
+        min-height: 142px;
+      }
+
+      .organ-name {
+        font-size: 14px;
+        line-height: 1.4;
+      }
+
+      .organ-number {
+        font-size: 24px;
+        margin-bottom: 6px;
+      }
+
+      .cell {
+        grid-template-columns: 1fr;
+        gap: 2px;
+        padding: 8px 6px;
+      }
+
+      .emotion {
+        min-height: 28px;
+        padding: 3px 4px;
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <h1>エモーションコード セッションサポート</h1>
+      <div>
+        <div class="toolbar">
+          <button class="button primary" id="copyButton" type="button">結果をコピー</button>
+          <button class="button danger" id="clearButton" type="button">セッションをクリア</button>
+        </div>
+        <div class="status" id="status" aria-live="polite"></div>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <section class="chart-wrap" aria-label="感情チャート">
+        <div class="chart-head" aria-hidden="true">
+          <div></div>
+          <div>A</div>
+          <div>B</div>
+        </div>
+        <div class="chart" id="chart"></div>
+      </section>
+
+      <aside class="session" aria-label="セッション結果">
+        <div class="session-header">
+          <div class="session-title-row">
+            <h2>リリースした感情</h2>
+            <div class="count" id="count">0件</div>
+          </div>
+        </div>
+        <div class="session-body" id="sessionList"></div>
+        <div class="preview">
+          <textarea id="resultText" readonly aria-label="コピー用テキスト"></textarea>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const rows = [
+      {
+        number: 1,
+        organ: "心臓または小腸",
+        A: ["放棄", "裏切り", "寂しい", "途方にくれる", "愛が報われない"],
+        B: ["努力が報われない", "心痛", "自信がなく不安", "喜び過ぎ", "傷つけられやすい"]
+      },
+      {
+        number: 2,
+        organ: "脾臓または胃",
+        A: ["不安", "絶望", "嫌悪", "緊張", "心配"],
+        B: ["失敗", "無力感", "希望がない", "制御不能", "低い自尊心"]
+      },
+      {
+        number: 3,
+        organ: "肺または大腸",
+        A: ["泣く", "落胆", "拒絶", "悲しみ", "悲哀"],
+        B: ["困惑", "自己防衛", "悲嘆", "自己虐待", "頑固さ"]
+      },
+      {
+        number: 4,
+        organ: "肝臓または胆嚢",
+        A: ["怒り", "苦渋", "罪悪感", "憎しみ", "憤り"],
+        B: ["抑うつ", "欲求不満", "優柔不断", "パニック", "当たり前に扱われる"]
+      },
+      {
+        number: 5,
+        organ: "腎臓または膀胱",
+        A: ["非難", "億劫", "恐れ", "ゾッとする恐怖", "苛立たしい"],
+        B: ["葛藤", "創造性への不安", "怯える恐怖", "支援されない", "はっきりしない"]
+      },
+      {
+        number: 6,
+        organ: "腺または生殖器",
+        A: ["屈辱", "嫉妬", "切望", "欲望", "圧倒される"],
+        B: ["高慢", "恥", "ショック", "ふさわしくない", "価値がない"]
+      }
+    ];
+
+    let releases = [];
+    let nextId = 1;
+
+    const chart = document.querySelector("#chart");
+    const sessionList = document.querySelector("#sessionList");
+    const resultText = document.querySelector("#resultText");
+    const count = document.querySelector("#count");
+    const status = document.querySelector("#status");
+    const toast = document.querySelector("#toast");
+
+    function buildChart() {
+      rows.forEach((row) => {
+        const organ = document.createElement("div");
+        organ.className = "organ";
+        organ.innerHTML = `<div><span class="organ-number">${row.number}</span><span class="organ-name">${row.organ}</span></div>`;
+        chart.appendChild(organ);
+        ["A", "B"].forEach((column) => {
+          const cell = document.createElement("div");
+          cell.className = "cell";
+          row[column].forEach((emotion) => {
+            const button = document.createElement("button");
+            button.className = "emotion";
+            button.type = "button";
+            button.textContent = emotion;
+            button.addEventListener("click", () => addRelease(emotion));
+            cell.appendChild(button);
+          });
+          chart.appendChild(cell);
+        });
+      });
+    }
+
+    function addRelease(emotion) {
+      releases.push({
+        id: nextId++,
+        emotion,
+        note: ""
+      });
+      render();
+      const latest = document.querySelector(`[data-release-id="${releases[releases.length - 1].id}"] textarea`);
+      if (latest) latest.focus();
+      showToast(`${emotion}を追加しました`);
+    }
+
+    function removeRelease(id) {
+      releases = releases.filter((release) => release.id !== id);
+      render();
+    }
+
+    function updateNote(id, value) {
+      const release = releases.find((item) => item.id === id);
+      if (release) {
+        release.note = value;
+        updateResult();
+      }
+    }
+
+    function render() {
+      count.textContent = `${releases.length}件`;
+      sessionList.innerHTML = "";
+      if (!releases.length) {
+        sessionList.innerHTML = `<div class="empty">チャートの感情をタップすると、ここにセッション結果が追加されます。</div>`;
+      } else {
+        releases.forEach((release, index) => {
+          const item = document.createElement("article");
+          item.className = "release";
+          item.dataset.releaseId = String(release.id);
+          item.innerHTML = `
+            <div class="release-top">
+              <div class="index">${index + 1}</div>
+              <div>
+                <div class="release-name">${escapeHtml(release.emotion)}</div>
+              </div>
+              <button class="icon-button" type="button" title="削除" aria-label="${escapeHtml(release.emotion)}を削除">×</button>
+            </div>
+            <textarea class="notes" placeholder="追加情報を自由に入力">${escapeHtml(release.note)}</textarea>
+          `;
+          item.querySelector(".icon-button").addEventListener("click", () => removeRelease(release.id));
+          item.querySelector(".notes").addEventListener("input", (event) => updateNote(release.id, event.target.value));
+          sessionList.appendChild(item);
+        });
+      }
+      updateResult();
+    }
+
+    function updateResult() {
+      if (!releases.length) {
+        resultText.value = "";
+        status.textContent = "";
+        return;
+      }
+      resultText.value = releases.map((release, index) => {
+        const note = release.note.trim();
+        const base = `${index + 1}. ${release.emotion}`;
+        return note ? `${base}\n   追加情報：${note.replace(/\n/g, "\n   ")}` : base;
+      }).join("\n");
+    }
+
+    async function copyResult() {
+      updateResult();
+      if (!resultText.value.trim()) {
+        showToast("コピーする結果がありません");
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(resultText.value);
+      } catch (error) {
+        resultText.focus();
+        resultText.select();
+        document.execCommand("copy");
+      }
+      status.textContent = "コピーしました";
+      showToast("セッション結果をコピーしました");
+      setTimeout(() => {
+        status.textContent = "";
+      }, 2200);
+    }
+
+    function clearSession() {
+      if (!releases.length) return;
+      if (!confirm("現在のセッション結果をクリアしますか？")) return;
+      releases = [];
+      render();
+      showToast("セッションをクリアしました");
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => toast.classList.remove("show"), 1700);
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    document.querySelector("#copyButton").addEventListener("click", copyResult);
+    document.querySelector("#clearButton").addEventListener("click", clearSession);
+
+    buildChart();
+    render();
+  </script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="感情リリース">
+  <rect width="512" height="512" rx="96" fill="#18bf88"/>
+  <path d="M108 122h296a44 44 0 0 1 44 44v180a44 44 0 0 1-44 44H108a44 44 0 0 1-44-44V166a44 44 0 0 1 44-44Z" fill="#fbfbfe"/>
+  <path d="M170 122v268M64 212h384M64 302h384M294 122v268" fill="none" stroke="#3f37a8" stroke-width="16"/>
+  <text x="256" y="284" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Yu Gothic', sans-serif" font-size="156" font-weight="800" fill="#18bf88">感</text>
+</svg>
